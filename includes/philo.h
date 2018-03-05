@@ -19,20 +19,25 @@
 # define ERROR 84
 # define SUCCESS 0
 # define FAILURE 1
+# define NONE 0
+# define LEFT 1
+# define RIGHT 10
+# define BOTH 11
 
 /*
 ** STRUCTURES
 */
-enum Status {
+enum e_status {
 	EAT,
-	SLEEP,
-	REST
+	THINK,
+	REST,
+	UNDEFINED
 };
 
 typedef struct s_philo {
 	pthread_mutex_t *right;
 	pthread_mutex_t *left;
-	enum Status status;
+	enum e_status status;
 	size_t nb_eat;
 	pthread_t thread;
 	int id;

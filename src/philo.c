@@ -19,6 +19,48 @@ int is_numeric(const char *s)
 	return (*p == '\0');
 }
 
+int eat(t_philo *philo, size_t nb_stick_bin)
+{
+	lphilo_take_chopstick(philo->left);
+	lphilo_take_chopstick(philo->right);
+	lphilo_eat();
+	lphilo_release_chopstick(philo->left);
+	lphilo_release_chopstick(philo->right);
+	philo->nb_eat -= 1;
+	philo->status = REST;
+}
+
+int rest(t_philo *philo, size_t nb_stick_bin)
+{
+	philo->status = UNDEFINED;
+}
+
+int think(t_philo *philo, size_t nb_stick_bin)
+{
+	philo->status = THINK;
+	switch (nb_stick_bin) {
+		case LEFT:
+			lphilo_take_chopstick(philo->left);
+			lphilo_think();
+			lphilo_release_chopstick(philo->left);
+			return (0);
+		case RIGHT:
+			lphilo_take_chopstick(philo->right);
+			lphilo_think();
+			lphilo_release_chopstick(philo->right);
+			return (0);
+		case BOTH:
+			return (eat(philo, nb_stick_bin));
+		}
+}
+
+int (*actions[3])(t_philo *philo, size_t nb_stick_bin) =
+{
+	rest,
+	think,
+	eat
+};
+
 void *try(void *arg)
 {
 	t_philo *philo = (t_philo *)arg;
@@ -27,37 +69,19 @@ void *try(void *arg)
 	while (philo->nb_eat != 0) {
 		nb_stick_bin = 0;
 		if (pthread_mutex_trylock(philo->left) == 0) {
-			lphilo_take_chopstick(philo->left);
-			nb_stick_bin += 1;
+			nb_stick_bin += LEFT;
 		}
 		if (pthread_mutex_trylock(philo->right) == 0) {
-			lphilo_take_chopstick(philo->right);
-			nb_stick_bin += 10;
+			nb_stick_bin += RIGHT;
+		}
+		if (philo->status == REST) {
+			if (nb_stick_bin == LEFT or nb_stick_bin == RIGHT)
+				think(philo, nb_stick_bin);
+			else if (nb_stick_bin == BOTH)
+				eat(philo, nb_stick_bin);
 		}
 
-		switch (nb_stick_bin) {
-			case 0:
-				lphilo_sleep();
-				break;
-			case 1:
-				lphilo_think();
-				pthread_mutex_unlock(philo->left);
-				lphilo_release_chopstick(philo->left);
-				break;
-			case 10:
-				lphilo_think();
-				pthread_mutex_unlock(philo->right);
-				lphilo_release_chopstick(philo->right);
-				break;
-			case 11:
-				lphilo_eat();
-				philo->nb_eat -= 1;
-				pthread_mutex_unlock(philo->right);
-				lphilo_release_chopstick(philo->right);
-				pthread_mutex_unlock(philo->left);
-				lphilo_release_chopstick(philo->left);
-				break;
-		}
+		actions[philo->status](philo, nb_stick_bin);
 	}
 	pthread_exit(NULL);
 }
@@ -72,7 +96,7 @@ int philo(t_info *info)
 		philos[i].left = &mutexs[i];
 		philos[i].right = &mutexs[(i == 0 ? info->nb_p : i ) - 1];
 		philos[i].nb_eat = info->nb_e;
-		philos[i].status = REST;
+		philos[i].status = UNDEFINED;
 		philos[i].id = i;
 	}
 	for (int i = 0; i < info->nb_p; i++)
