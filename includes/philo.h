@@ -23,11 +23,18 @@
 /*
 ** STRUCTURES
 */
+enum Status {
+	EAT,
+	SLEEP,
+	REST
+};
+
 typedef struct s_philo {
-	pthread_t thread;
-	size_t rice;
-	size_t status;
+	pthread_mutex_t *right;
+	pthread_mutex_t *left;
+	enum Status status;
 	size_t nb_eat;
+	pthread_t thread;
 } t_philo;
 
 typedef struct s_info {
