@@ -38,7 +38,8 @@ int main(int ac, char **av)
 		case EXIT:
 			return (dispay_help(), SUCCESS);
 	}
-
+	if (info.nb_p > 32754)
+		return (ERROR);
 	RCFStartup(ac, av);
 	philo(&info);
 	printf("\n\n\n\n");
