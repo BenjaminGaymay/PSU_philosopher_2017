@@ -35,6 +35,7 @@ typedef struct s_philo {
 	enum Status status;
 	size_t nb_eat;
 	pthread_t thread;
+	int id;
 } t_philo;
 
 typedef struct s_info {

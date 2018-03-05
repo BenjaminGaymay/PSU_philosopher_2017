@@ -42,7 +42,6 @@ int main(int ac, char **av)
 		return (ERROR);
 	RCFStartup(ac, av);
 	philo(&info);
-	printf("\n\n\n\n");
 	RCFCleanup();
 	return (SUCCESS);
 }
