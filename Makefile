@@ -9,8 +9,10 @@ SRCS	= ./src/main.c \
 
 OBJS	= $(SRCS:.c=.o)
 
-CFLAGS = -I ./includes/
+CFLAGS	= -I ./includes/
 CFLAGS += -W -Wall -Wextra
+
+LDFLAGS	= -Llib -lriceferee -lpthread
 
 all: $(NAME)
 
