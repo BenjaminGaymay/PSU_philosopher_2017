@@ -17,23 +17,28 @@ void dispay_help()
 
 int get_info(t_info *info, int ac, char **av)
 {
-	if (ac != 3 || is_numeric(av[1]) == 0 || is_numeric(av[2]) == 0)
-		return (FAILURE);
-	info->nb_p = atoi(av[1]);
-	info->nb_e = atoi(av[2]);
-	return (SUCCESS);
+	for (int i = 1 ; i < ac ; i++) {
+		if ((strcmp(av[i], "--help") == 0 || strcmp(av[i], "-h") == 0))
+			return (EXIT);
+		else if (strcmp(av[i], "-e") == 0 && av[i + 1] && is_numeric(av[i + 1]))
+			info->nb_e = atoi(av[i + 1]);
+		else if (strcmp(av[i], "-p") == 0 && av[i + 1] && is_numeric(av[i + 1]))
+			info->nb_p = atoi(av[i + 1]);
+	}
+	return (ac != 5 ? FAILURE : SUCCESS);
 }
 
 int main(int ac, char **av)
 {
 	t_info info;
 
-	if (ac == 1)
-		return (ERROR);
-	if ((strcmp(av[1], "--help") == 0 || strcmp(av[1], "-h") == 0))
-		return (dispay_help(), SUCCESS);
-	if (get_info(&info, ac, av) == FAILURE)
-		return (dispay_help(), ERROR);
+	switch (get_info(&info, ac, av)) {
+		case FAILURE:
+			return (dispay_help(), ERROR);
+		case EXIT:
+			return (dispay_help(), SUCCESS);
+	}
+
 	RCFStartup(ac, av);
 	philo(&info);
 	RCFCleanup();

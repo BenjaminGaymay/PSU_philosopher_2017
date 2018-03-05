@@ -15,6 +15,7 @@
 /*
 ** MACROS
 */
+# define EXIT -1
 # define ERROR 84
 # define SUCCESS 0
 # define FAILURE 1
