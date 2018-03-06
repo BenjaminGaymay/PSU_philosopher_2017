@@ -5,6 +5,7 @@
 ** philo
 */
 
+#include <unistd.h>
 #include <ctype.h>
 #include "extern.h"
 #include "philo.h"
