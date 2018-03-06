@@ -11,6 +11,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 /*
 ** MACROS
@@ -30,8 +31,7 @@
 enum e_status {
 	EAT,
 	THINK,
-	REST,
-	UNDEFINED
+	REST
 };
 
 typedef struct s_philo {
@@ -41,6 +41,9 @@ typedef struct s_philo {
 	size_t nb_eat;
 	pthread_t thread;
 	int id;
+	size_t nb_stick;
+	bool l_stick;
+	bool r_stick;
 } t_philo;
 
 typedef struct s_info {
