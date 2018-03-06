@@ -20,113 +20,59 @@ int is_numeric(const char *s)
 	return (*p == '\0');
 }
 
-size_t get_stick(t_philo *philo)
+void eat(t_philo *philo)
 {
-	size_t nb = NONE;
-
-	if (pthread_mutex_trylock(philo->left) == 0) {
-		/* printf("%d GET LEFT\n", philo->id); */
-		nb += LEFT;
+	if (pthread_mutex_trylock(philo->left) && pthread_mutex_trylock(philo->right)) {
+		lphilo_take_chopstick(philo->left);
+		lphilo_take_chopstick(philo->right);
+		lphilo_eat();
+		philo->nb_eat--;
+		philo->status = EAT;
+		lphilo_release_chopstick(philo->left);
+		lphilo_release_chopstick(philo->right);
+		pthread_mutex_unlock(philo->left);
+		pthread_mutex_unlock(philo->right);
 	}
-	if (pthread_mutex_trylock(philo->right) == 0) {
-		/* printf("%d GET RIGHT\n", philo->id); */
-		nb += RIGHT;
-	}
-	philo->nb_stick = nb;
-	return (nb);
 }
 
 void rest(t_philo *philo)
 {
-	size_t nb_stick = get_stick(philo);
-
+	philo->status = REST;
 	lphilo_sleep();
-	/* printf("REST %d : je dors\n", philo->id); */
-	if (nb_stick == LEFT || nb_stick == RIGHT) {
-		philo->status = THINK;
-		/* printf("REST %d : je vais THINK\n", philo->id); */
-	}
-	else if (nb_stick == BOTH) {
-		philo->status = EAT;
-		/* printf("REST %d : je vais EAT\n", philo->id); */
-	}
+}
+
+void try_think(t_philo *philo)
+{
+	if (pthread_mutex_trylock(philo->left) && philo->status != THINK)
+		philo->l_stick = true;
+	else if (pthread_mutex_trylock(philo->right) && philo->status != THINK)
+		philo->r_stick = true;
 }
 
 void think(t_philo *philo)
 {
-	if (philo->nb_stick == LEFT) {
-		/* printf("THINK %d : je prend LEFT\n", philo->id); */
-		lphilo_take_chopstick(philo->left);
-		philo->l_stick = true;
+	try_think(philo);
+	if (philo->l_stick || philo->r_stick) {
+		philo->status = THINK;
+		lphilo_take_chopstick(philo->l_stick ? philo->left : philo->right);
+		lphilo_think();
+		lphilo_release_chopstick(philo->l_stick ? philo->left : philo->right);
+		pthread_mutex_unlock(philo->l_stick ? philo->left : philo->right);
+		philo->l_stick = false;
+		philo->r_stick = false;
 	}
-	else {
-		/* printf("THINK %d : je prend RIGHT\n", philo->id); */
-		lphilo_take_chopstick(philo->right);
-		philo->r_stick = true;
-	}
-	/* printf("THINK %d : je pense\n", philo->id); */
-	lphilo_think();
-	usleep(500);
-	while (get_stick(philo) == NONE)
-	{
-		usleep(500);
-		/* printf("THINK %d : je pense (boucle)\n", philo->id); */
-	}
-	/* printf("THINK %d : je vais EAT\n", philo->id); */
-	philo->status = EAT;
 }
-
-void eat(t_philo *philo)
-{
-	if (philo->l_stick) {
-		/* printf("EAT %d : je prend RIGHT\n", philo->id); */
-		lphilo_take_chopstick(philo->right);
-	}
-	else if (philo->r_stick) {
-		/* printf("EAT %d : je prend LEFT\n", philo->id); */
-		lphilo_take_chopstick(philo->left);
-	}
-	else {
-		/* printf("EAT %d : je prend RIGHT et LEFT\n", philo->id); */
-		lphilo_take_chopstick(philo->left);
-		lphilo_take_chopstick(philo->right);
-	}
-	/* printf("EAT %d : je mange\n", philo->id); */
-	lphilo_eat();
-	usleep(1000);
-	/* printf("EAT %d : je lache LEFT et RIGHT\n", philo->id); */
-	lphilo_release_chopstick(philo->left);
-	pthread_mutex_unlock(philo->left);
-	lphilo_release_chopstick(philo->right);
-	pthread_mutex_unlock(philo->right);
-	philo->l_stick = false;
-	philo->r_stick = false;
-	/* printf("EAT : je vais dormir\n"); */
-	philo->status = REST;
-	philo->nb_eat -= 1;
-}
-
-void (*actions[3])(t_philo *philo) =
-{
-	eat,
-	think,
-	rest
-};
 
 void *try(void *arg)
 {
 	t_philo *philo = (t_philo *)arg;
 
 	while (philo->nb_eat != 0) {
-		get_stick(philo);
-		if (philo->nb_stick == BOTH)
-			eat(philo);
-		else if (philo->nb_stick == LEFT || philo->nb_stick == RIGHT) {
+		eat(philo);
+		if (philo->status == EAT)
+			rest(philo);
+		if (philo->status == REST)
 			think(philo);
-			eat(philo);
-		}
-		lphilo_sleep();
-		// actions[philo->status](philo);
 	}
 	pthread_exit(NULL);
 }
@@ -150,7 +96,6 @@ int philo(t_info *info)
 	for (int i = 0; i < info->nb_p; i++) {
 		if (pthread_create(&philos[i].thread, NULL, try, &philos[i]) != 0)
 			return (ERROR);
-		usleep(1000);
 	}
 	for (int i = 0; i < info->nb_p; i++)
 		if (pthread_join(philos[i].thread, NULL) != 0)
