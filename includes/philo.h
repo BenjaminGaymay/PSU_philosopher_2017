@@ -39,9 +39,7 @@ typedef struct s_philo {
 	pthread_mutex_t *left;
 	enum e_status status;
 	size_t nb_eat;
-	pthread_t thread;
-	int id;
-	size_t nb_stick;
+	pthread_t thd;
 	bool l_stick;
 	bool r_stick;
 } t_philo;
@@ -55,4 +53,3 @@ typedef struct s_info {
 ** PROTOTYPES
 */
 int philo(t_info *);
-int is_numeric(const char *);
