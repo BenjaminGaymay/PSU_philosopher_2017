@@ -72,7 +72,7 @@ void *try(void *arg)
 			eat(philo);
 		if (philo->status == EAT)
 			rest(philo);
-		if (philo->status == REST)
+		else if (philo->status == REST)
 			think(philo);
 	}
 	pthread_exit(NULL);
