@@ -41,7 +41,7 @@ void rest(t_philo *philo)
 	lphilo_sleep();
 }
 
-void try_think(t_philo *philo)
+void try_take(t_philo *philo)
 {
 	if (pthread_mutex_trylock(philo->left) && philo->status != THINK)
 		philo->l_stick = true;
@@ -51,7 +51,7 @@ void try_think(t_philo *philo)
 
 void think(t_philo *philo)
 {
-	try_think(philo);
+	try_take(philo);
 	if (philo->l_stick || philo->r_stick) {
 		philo->status = THINK;
 		lphilo_take_chopstick(philo->l_stick ? philo->left : philo->right);
