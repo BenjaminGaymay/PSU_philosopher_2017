@@ -19,7 +19,7 @@ static int is_numeric(const char *s)
 	return (*p == '\0');
 }
 
-static void dispay_help()
+static void dispay_help(void)
 {
 	printf("USAGE\n\t./philo -p nbr_p -e nbr_e\n\nDESCRIPTION");
 	printf("\n\t-p nbr_p number of philosophers\n\t-e nbr_e maximum num");

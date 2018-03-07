@@ -82,10 +82,9 @@ int philo(t_info *info)
 		phis[i].l_stick = false;
 		phis[i].r_stick = false;
 	}
-	for (int i = 0; i < info->nb_p; i++) {
+	for (int i = 0; i < info->nb_p; i++)
 		if (pthread_create(&phis[i].thd, NULL, try, &phis[i]) != 0)
 			return (ERROR);
-	}
 	for (int i = 0; i < info->nb_p; i++)
 		if (pthread_join(phis[i].thd, NULL) != 0)
 			return (ERROR);
