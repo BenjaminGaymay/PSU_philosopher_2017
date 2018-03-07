@@ -68,7 +68,8 @@ void *try(void *arg)
 	t_philo *philo = (t_philo *)arg;
 
 	while (philo->nb_eat != 0) {
-		eat(philo);
+		if (philo->status == THINK || philo->status == REST)
+			eat(philo);
 		if (philo->status == EAT)
 			rest(philo);
 		if (philo->status == REST)
